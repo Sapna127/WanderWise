@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  name        String
+  password    String
+  itineraries Itinerary[]
+}
+
+model Itinerary {
+  id              String   @id @default(uuid())
+  title           String
+  destination     String
+  duration        Int
+  tripType        String   // Solo, Family, Business, Honeymoon, etc.
+  budget          String   // Low, Medium, High
+  transport       String   // Car, Train, Flight, Public Transport
+  accommodation   String   // Hotel, Hostel, Airbnb, Camping
+  interests       String   // JSON array stored as a string
+  startDate       DateTime
+  endDate         DateTime
+  itineraryData   Json     // Stores AI-generated structured response
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+
+model Budget {
+  id        String  @id @default(uuid())
+  userId    String
+  amount    Float
+  currency  String
+  expenses  Expense[]
+  createdAt DateTime @default(now())
+}
+
+model Expense {
+  id        String  @id @default(uuid())
+  budgetId  String
+  category  String
+  amount    Float
+  currency  String
+  createdAt DateTime @default(now())
+
+  budget    Budget   @relation(fields: [budgetId], references: [id])
+}
+
