@@ -1,167 +1,78 @@
-"use client"
-import { useState } from 'react';
-import axios from 'axios';
+import { Map, Users, DollarSign, Brain } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import { Button } from "@/components/ui/button";
 
-export default function TripPlanner() {
-  const [formData, setFormData] = useState({
-    destination: '',
-    duration: '',
-    tripType: '',
-    budget: '',
-    transport: '',
-    accommodation: '',
-    interests: [],
-    startDate: '',
-    endDate: ''
-  });
+const services = [
+  {
+    id: 1,
+    icon: <Brain size={20} className="text-blue-500" />,
+    title: "AI-Powered Itinerary Generator",
+    description: "Create personalized travel plans with AI-driven insights.",
+  },
+  {
+    id: 2,
+    icon: <DollarSign size={20} className="text-blue-500" />,
+    title: "Smart Expense & Budget Tracker",
+    description: "Optimize your travel budget with real-time expense tracking.",
+  },
+  {
+    id: 3,
+    icon: <Map size={20} className="text-blue-500" />,
+    title: "Route Optimization & Smart Maps",
+    description: "Plan efficient routes with AI-powered smart mapping.",
+  },
+  {
+    id: 4,
+    icon: <Users size={20} className="text-blue-500" />,
+    title: "Social & Community Features",
+    description: "Connect, share, and collaborate with fellow travelers.",
+  },
+];
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [tripData, setTripData] = useState(null);
-
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    if (type === 'checkbox') {
-      setFormData((prev) => ({
-        ...prev,
-        interests: checked
-          ? [...prev.interests, value]
-          : prev.interests.filter((i) => i !== value)
-      }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const res = await axios.post('/api/itinerary/generate', formData);
-      setTripData(JSON.parse(res.data.itineraryData));
-    } catch (err) {
-      setError('Failed to generate itinerary');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+export default function ServicesSection() {
   return (
-    <div className="p-8 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">✈️ Plan Your Dream Trip ✨</h1>
+    <>
+      <Navbar />
+      <div className="flex flex-col items-center text-center p-12 pt-[100px]">
+        <h1 className="text-5xl font-bold text-gray-900 max-w-2xl leading-tight">
+          Craft Unforgettable Journeys With{" "}
+          <span className="text-blue-500">AI-Trip Planning</span>
+        </h1>
+        <p className="text-lg text-gray-600 mt-5 max-w-xl">
+          Plan stress-free trips with AI-powered itinerary building, smart
+          budgeting, and seamless route optimization.
+        </p>
+        <Button className="mt-6 px-10 py-5 text-lg bg-blue-600 hover:bg-blue-700 text-white  shadow-lg transition-all transform hover:scale-105">
+          Start Planning
+        </Button>
+        <p className="mt-5 text-gray-700">
+          Already have an account?{" "}
+          <span className="underline text-blue-500 cursor-pointer hover:text-blue-700 text-sm">
+            Log in
+          </span>
+        </p>
+      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-lg font-medium mb-2">🌍 Where do you want to Explore?</label>
-          <input 
-            type="text" 
-            name="destination" 
-            value={formData.destination} 
-            onChange={handleChange} 
-            placeholder="Enter city or country" 
-            className="w-full p-3 border rounded-lg"
-          />
+      <div className="flex justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 max-w-4xl mx-auto">
+          {services.map((service) => (
+            <div
+              key={service.id}
+              className="flex flex-col items-center text-center transition-all transform hover:scale-105 relative overflow-hidden"
+            >
+              {/* Icon Container */}
+              <div className="w-14 h-14 rounded-full border border-gray-300 p-3 flex items-center justify-center relative">
+                {service.icon}
+              </div>
+
+              {/* Description */}
+              <p className="text-sm text-black relative  mt-2">
+                {service.description}
+              </p>
+            </div>
+          ))}
         </div>
-
-        <div>
-          <label className="block text-lg font-medium mb-2">📅 How long is your Trip?</label>
-          <input 
-            type="number" 
-            name="duration" 
-            value={formData.duration} 
-            onChange={handleChange} 
-            placeholder="Number of days" 
-            className="w-full p-3 border rounded-lg"
-          />
-        </div>
-
-        <div>
-          <label className="block text-lg font-medium mb-2">👥 Who are you traveling with?</label>
-          <select name="tripType" value={formData.tripType} onChange={handleChange} className="w-full p-3 border rounded-lg">
-            <option value="Solo Travel">🌿 Solo Travel</option>
-            <option value="Partner">❤️ Partner</option>
-            <option value="Family">👨‍👩‍👧‍👦 Family</option>
-            <option value="Friends">🎉 Friends</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-lg font-medium mb-2">💸 What is your Budget?</label>
-          <select name="budget" value={formData.budget} onChange={handleChange} className="w-full p-3 border rounded-lg">
-            <option value="Budget">💰 Cheap</option>
-            <option value="Mid-range">💎 Moderate</option>
-            <option value="Luxury">👑 Luxury</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-lg font-medium mb-2">🚌 Preferred Transport</label>
-          <select name="transport" value={formData.transport} onChange={handleChange} className="w-full p-3 border rounded-lg">
-            <option value="Public Transport">🚋 Public Transport</option>
-            <option value="Car Rental">🚗 Car Rental</option>
-            <option value="Bicycle">🚲 Bicycle</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-lg font-medium mb-2">🏨 Accommodation Type</label>
-          <select name="accommodation" value={formData.accommodation} onChange={handleChange} className="w-full p-3 border rounded-lg">
-            <option value="Hotel">🏨 Hotel</option>
-            <option value="Hostel">🏕️ Hostel</option>
-            <option value="Airbnb">🏡 Airbnb</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-lg font-medium mb-2">🎯 Interests</label>
-          <div className="flex flex-wrap gap-3">
-            {['Culture', 'Food', 'Adventure', 'Shopping', 'Nature'].map((interest) => (
-              <label key={interest} className="flex items-center gap-2">
-                <input 
-                  type="checkbox" 
-                  name="interests" 
-                  value={interest} 
-                  checked={formData.interests.includes(interest)} 
-                  onChange={handleChange} 
-                />
-                {interest}
-              </label>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <label className="block text-lg font-medium mb-2">📅 Start Date</label>
-            <input 
-              type="date" 
-              name="startDate" 
-              value={formData.startDate} 
-              onChange={handleChange} 
-              className="w-full p-3 border rounded-lg"
-            />
-          </div>
-
-          <div className="flex-1">
-            <label className="block text-lg font-medium mb-2">📅 End Date</label>
-            <input 
-              type="date" 
-              name="endDate" 
-              value={formData.endDate} 
-              onChange={handleChange} 
-              className="w-full p-3 border rounded-lg"
-            />
-          </div>
-        </div>
-
-        <button 
-          type="submit" 
-          className="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          disabled={loading}
-        >
-          {loading ? 'Generating...' : 'Generate Itinerary'}
-        </button>
-      </form>
-    </div>
+      </div>
+    </>
   );
 }
