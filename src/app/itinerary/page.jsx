@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import axios from "axios";
+import Navbar from "@/components/Navbar";
+import { useRouter } from "next/navigation";
 
 export default function TripPlanner() {
   const [formData, setFormData] = useState({
@@ -45,14 +47,18 @@ export default function TripPlanner() {
       setLoading(false);
     }
   };
-
+  const router = useRouter();
   return (
-    <div className="p-8 max-w-3xl mx-auto">
+    
+    <>
+    <Navbar/>
+    <div className="p-8 w-full mx-auto mt-20">
+      
       <h1 className="text-4xl font-bold mb-6 text-center text-gray-800">
-        ✈️ Plan Your Dream Trip ✨
+         Tell us your travel preferences✨
       </h1>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
+      
+      <form onSubmit={handleSubmit} className="space-y-6 pl-20 pr-20">
         {/* Destination */}
         <div>
           <label className="block text-lg font-medium mb-2 text-gray-700">
@@ -207,16 +213,20 @@ export default function TripPlanner() {
             />
           </div>
         </div>
-
+        
         {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full p-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all transform hover:scale-105 active:scale-95"
-          disabled={loading}
-        >
-          {loading ? "Generating..." : "Generate Itinerary"}
-        </button>
+        <div className="border-t-2 border-gray-300 flex justify-end p-3 w-full">
+          <button
+            type="submit"
+            className="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-all transform hover:scale-105 active:scale-95"
+            disabled={loading}
+            onClick={()=> router.push("/itinerary/info")}
+          >
+            {loading ? "Generating..." : "Generate Itinerary"}
+          </button>
+        </div>
       </form>
     </div>
+    </>
   );
 }

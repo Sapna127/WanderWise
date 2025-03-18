@@ -1,6 +1,12 @@
+"use client";
 import { Map, Users, DollarSign, Brain } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
+import Loginbox from "@/components/Loginbox";
+import Featureslider from "@/components/Featureslider";
+import DestinationsGrid from "@/components/DestinationsGrid";
+import Footer from "@/components/Footer";
+import { useRouter } from "next/navigation";
 
 const services = [
   {
@@ -30,9 +36,12 @@ const services = [
 ];
 
 export default function ServicesSection() {
+  const router = useRouter();
+
   return (
     <>
       <Navbar />
+      <Loginbox />
       <div className="flex flex-col items-center text-center p-12 pt-[100px]">
         <h1 className="text-5xl font-bold text-gray-900 max-w-2xl leading-tight">
           Craft Unforgettable Journeys With{" "}
@@ -42,7 +51,10 @@ export default function ServicesSection() {
           Plan stress-free trips with AI-powered itinerary building, smart
           budgeting, and seamless route optimization.
         </p>
-        <Button className="mt-6 px-10 py-5 text-lg bg-blue-600 hover:bg-blue-700 text-white  shadow-lg transition-all transform hover:scale-105">
+        <Button
+          onClick={() => router.push("/itinerary")}
+          className="mt-6 px-10 py-5 text-lg bg-blue-600 hover:bg-blue-700 text-white  shadow-lg transition-all transform hover:scale-105 hover:cursor-pointer"
+        >
           Start Planning
         </Button>
         <p className="mt-5 text-gray-700">
@@ -73,6 +85,10 @@ export default function ServicesSection() {
           ))}
         </div>
       </div>
+
+      <DestinationsGrid />
+      {/* <Featureslider /> */}
+      <Footer />
     </>
   );
 }
