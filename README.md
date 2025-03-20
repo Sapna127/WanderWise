@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<div align = "center">
 
-## Getting Started
 
-First, run the development server:
+<h1 align="center"> <font size="5"> <b> 🗺️ WonderWise </b></h1>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+![image](https://github.com/user-attachments/assets/a6794dfd-209e-4041-9202-5a6c525a4245)
 
-## Learn More
+  </div>
 
-To learn more about Next.js, take a look at the following resources:
+  
+## Features and Functionality ✨
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+*   **AI-Powered Itinerary Generation:** Generates personalized travel itineraries based on user preferences such as destination, duration, trip type, budget, transport, accommodation, and interests.
+*   **Budget Management:** Allows users to set a budget for their trips and track expenses.
+*   **Collaborative Itinerary Planning:** Enables users to invite collaborators to plan trips together.
+*   **Review and Rating System:** Users can review itineraries and provide ratings.
+*   **AI-Generated Cost-Saving Tips:** Provides personalized cost-saving tips based on user spending.
+*   **Authentication:** User authentication (signup and login) using Next-auth.
+*   **Social features:** Allow users to share itineraries and connect.
+*   **Access offline:** by downloading and saving trips to your profile.
+  
+## Technology Stack 👀
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+*   **Next.js:** React framework for building the user interface.
+*   **Prisma:** ORM for database interactions.
+*   **PostgreSQL:** Database for storing user data, itineraries, and expenses.
+*   **Google Gemini API:** For AI-powered itinerary generation and cost-saving tips.
+*   **Tailwind CSS:** CSS framework for styling.
+*   **Framer Motion:** Library for animations.
+*   **Lucide React:** Library for icons.
 
-## Deploy on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contact/Support Information 💌
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+For questions or support, please contact [Sapna127](https://github.com/Sapna127).
