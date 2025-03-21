@@ -1,5 +1,5 @@
 "use client";
-import { Map, Users, DollarSign, Brain } from "lucide-react";
+import { Map, Users, DollarSign, Brain, WifiOff } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import Loginbox from "@/components/Loginbox";
@@ -23,9 +23,9 @@ const services = [
   },
   {
     id: 3,
-    icon: <Map size={20} className="text-blue-500" />,
-    title: "Route Optimization & Smart Maps",
-    description: "Plan efficient routes with AI-powered smart mapping.",
+    icon: <WifiOff size={20} className="text-blue-500" />,
+    title: "Offline Mode ",
+    description: "Download and use your itinerary without interest.",
   },
   {
     id: 4,
@@ -59,7 +59,10 @@ export default function ServicesSection() {
         </Button>
         <p className="mt-5 text-gray-700">
           Already have an account?{" "}
-          <span className="underline text-blue-500 cursor-pointer hover:text-blue-700 text-sm">
+          <span
+            onClick={() => router.push("/signin")}
+            className="underline text-blue-500 cursor-pointer hover:text-blue-700 text-sm"
+          >
             Log in
           </span>
         </p>
