@@ -42,7 +42,7 @@ export default function ServicesSection() {
     <>
       <Navbar />
       <Loginbox />
-      <div className="flex flex-col items-center text-center p-12 pt-[100px]">
+      <div className="flex flex-col items-center text-center p-12 pt-[105px]">
         <h1 className="text-5xl font-bold text-gray-900 max-w-2xl leading-tight">
           Craft Unforgettable Journeys With{" "}
           <span className="text-blue-500">AI-Trip Planning</span>
