@@ -1,9 +1,8 @@
+import { authenticate } from "@/lib/middleware/auth";
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { PrismaClient } from "@prisma/client";
-import { authenticate } from "@/lib/middleware/auth";
+import prisma from "@/lib/prisma";
 
-const prisma = new PrismaClient();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
@@ -102,8 +101,7 @@ export async function POST(req) {
             "activities": "amount"
           },
           "total": "amount"
-        },
-        "photos": ["photo description 1", "photo description 2"]
+        }
       }
 
       Do not include any markdown formatting, explanations, or additional text. Only return the JSON object.
@@ -143,8 +141,7 @@ export async function POST(req) {
       if (
         !parsedData.history ||
         !parsedData.dailyItinerary ||
-        !parsedData.expenses ||
-        !parsedData.photos
+        !parsedData.expenses
       ) {
         throw new Error("Missing required fields in AI response");
       }
@@ -154,7 +151,6 @@ export async function POST(req) {
         history: parsedData.history,
         dailyItinerary: parsedData.dailyItinerary,
         expenses: parsedData.expenses,
-        photos: parsedData.photos,
       };
 
       // Store the itinerary in the database
@@ -185,7 +181,25 @@ export async function POST(req) {
         );
       }
 
-      return NextResponse.json(itinerary, { status: 201 });
+      // Return the created itinerary, including its ID
+      return NextResponse.json(
+        {
+          id: itinerary.id, // Include the itinerary ID in the response
+          title: itinerary.title,
+          destination: itinerary.destination,
+          duration: itinerary.duration,
+          tripType: itinerary.tripType,
+          budget: itinerary.budget,
+          transport: itinerary.transport,
+          accommodation: itinerary.accommodation,
+          interests: JSON.parse(itinerary.interests),
+          startDate: itinerary.startDate,
+          endDate: itinerary.endDate,
+          visibility: itinerary.visibility,
+          itineraryData: JSON.parse(itinerary.itineraryData),
+        },
+        { status: 201 }
+      );
     } catch (error) {
       console.error("JSON Parsing Error:", error);
       return NextResponse.json(
