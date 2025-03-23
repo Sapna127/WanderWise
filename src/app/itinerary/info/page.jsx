@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Share, Edit, UserPlus, Bookmark } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
@@ -18,8 +18,8 @@ export default function ItineraryPage() {
   const [loadingReviews, setLoadingReviews] = useState(false);
   const [reviewError, setReviewError] = useState(null);
 
-  const searchParams = useSearchParams();
-  const itineraryId = searchParams.get("id");
+  const router = useRouter();
+  const itineraryId = router?.query?.id;
 
   useEffect(() => {
     const fetchItineraryData = async () => {
