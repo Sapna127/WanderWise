@@ -73,7 +73,11 @@ export default function TripPlanner() {
         },
       });
 
-      router.push("/itinerary/info");
+      // Extract the itinerary ID from the response
+      const itineraryId = res.data.id;
+
+      // Redirect to the itinerary info page with the itinerary ID
+      router.push(`/itinerary/info?id=${itineraryId}`);
     } catch (err) {
       console.error("Error:", err);
       setError("Failed to generate itinerary");

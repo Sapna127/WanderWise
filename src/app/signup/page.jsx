@@ -33,6 +33,9 @@ export default function Signup() {
       });
 
       if (res.ok) {
+        const data = await res.json();
+
+        localStorage.setItem("userId", data.userId);
         router.push("/signin");
       } else {
         const data = await res.json();
