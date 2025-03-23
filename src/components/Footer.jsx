@@ -6,7 +6,7 @@ const Footer = () => {
       <p className="text-sm flex items-center justify-center gap-2">
         🌟 If you like this project, consider giving it a star! 
         <a 
-          href="https://github.com/your-repo" 
+          href="https://github.com/Sapna127/WanderWise" 
           target="_blank" 
           rel="noopener noreferrer"
           className="flex items-center gap-1 hover:underline"
