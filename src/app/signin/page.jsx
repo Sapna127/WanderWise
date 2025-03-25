@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { jwtDecode } from 'jwt-decode';  
 
 export default function Signin() {
   const [email, setEmail] = useState("");
@@ -15,13 +16,12 @@ export default function Signin() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Basic validation
+  
     if (!email || !password) {
       setError("All fields are required");
       return;
     }
-
+  
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -30,15 +30,22 @@ export default function Signin() {
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       if (res.ok) {
-        const data = await res.json();
-
-        localStorage.setItem("userId", data.userId);
+        const { token } = await res.json(); // Destructure token from response
+        
+        // Store the token in localStorage
+        localStorage.setItem("authToken", token);
+        
+        // Decode token to get user info (you'll need jwt-decode package)
+        const decoded = jwtDecode(token);
+        localStorage.setItem("userId", decoded.userId);
+        
+        // Redirect to home/dashboard
         router.push("/");
       } else {
         const data = await res.json();
-        setError(data.message || "Signin failed");
+        setError(data.error || "Signin failed");
       }
     } catch (error) {
       console.error("Signin error:", error);
