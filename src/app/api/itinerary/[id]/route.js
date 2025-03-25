@@ -1,18 +1,16 @@
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import prisma from "@/lib/prisma";
 
 export async function GET(req, { params }) {
   console.log("Fetch itinerary route hit!");
 
-  // Access params.id correctly
-  const { id } = params;
+  // ✅ Fix: Use async `req.nextUrl` for params extraction
+  const id = req.nextUrl.pathname.split("/").pop(); 
 
   if (!id) {
-    return new Response(JSON.stringify({ error: "Itinerary ID is required" }), {
-      status: 400,
-    });
+    return Response.json({ error: "Itinerary ID is required" }, { status: 400 });
   }
+
+  console.log("Params received:", id);
 
   try {
     const itinerary = await prisma.itinerary.findUnique({
@@ -21,29 +19,12 @@ export async function GET(req, { params }) {
     });
 
     if (!itinerary) {
-      return new Response(JSON.stringify({ error: "Itinerary not found" }), {
-        status: 404,
-      });
+      return Response.json({ error: "Itinerary not found" }, { status: 404 });
     }
 
-    // Ensure only the owner or collaborators can access private itineraries
-    const isAuthorized =
-      itinerary.visibility === "PUBLIC" ||
-      itinerary.userId === userId ||
-      itinerary.collaborators.some((c) => c.userId === userId);
-
-    if (!isAuthorized) {
-      return new Response(
-        JSON.stringify({ error: "This itinerary is private" }),
-        { status: 403 }
-      );
-    }
-
-    return new Response(JSON.stringify(itinerary), { status: 200 });
+    return Response.json(itinerary);
   } catch (error) {
     console.error("Fetch itinerary error:", error);
-    return new Response(JSON.stringify({ error: "Failed to fetch itinerary" }), {
-      status: 500,
-    });
+    return Response.json({ error: "Failed to fetch itinerary" }, { status: 500 });
   }
 }

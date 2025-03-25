@@ -77,7 +77,7 @@ export default function TripPlanner() {
       const itineraryId = res.data.id;
 
       // Redirect to the itinerary info page with the itinerary ID
-      router.push(`/itinerary/info?id=${itineraryId}`);
+      router.push(`/itinerary/info/${itineraryId}`);
     } catch (err) {
       console.error("Error:", err);
       setError("Failed to generate itinerary");
