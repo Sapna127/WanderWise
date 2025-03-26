@@ -91,7 +91,7 @@ export default function ServicesSection() {
 
       <DestinationsGrid />
       {/* <Featureslider /> */}
-      <Footer />
+      {/* <Footer /> */}
     </>
   );
 }
