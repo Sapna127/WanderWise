@@ -1,17 +1,27 @@
 import prisma from "@/lib/prisma";
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const publicItineraries = await prisma.itinerary.findMany({
+    const itineraries = await prisma.itinerary.findMany({
       where: { visibility: "PUBLIC" },
-      include: { user: true },
+      include: { 
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
     });
 
-    return new Response(JSON.stringify(publicItineraries), { status: 200 });
+    return NextResponse.json(itineraries);
   } catch (error) {
     console.error("Error fetching public itineraries:", error);
-    return new Response(
-      JSON.stringify({ error: "Failed to fetch public itineraries" }),
+    return NextResponse.json(
+      { error: "Failed to fetch public itineraries" },
       { status: 500 }
     );
   }
