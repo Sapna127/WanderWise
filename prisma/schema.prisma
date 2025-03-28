@@ -21,6 +21,8 @@ model User {
   budgets       Budget[]
   reviews       Review[]
   collaborators Collaborator[]
+  savedItineraries  SavedItinerary[] @relation(name: "UserSavedItineraries") 
+
 }
 
 model Itinerary {
@@ -36,14 +38,25 @@ model Itinerary {
   startDate       DateTime
   endDate         DateTime
   itineraryData   Json     
-  visibility      Visibility @default(PRIVATE) // Use enum instead of string
+  visibility      Visibility @default(PRIVATE) 
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   collaborators   Collaborator[]  
+  savedByUsers    SavedItinerary[] @relation(name: "ItinerarySavedByUsers")  
   reviews        Review[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model SavedItinerary {
+  id          String   @id @default(uuid())
+  userId      String
+  itineraryId String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade, name: "UserSavedItineraries")
+  itinerary   Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade, name: "ItinerarySavedByUsers")
+  createdAt   DateTime  @default(now())
+}
+
 
 model Collaborator {
   id          String   @id @default(uuid())
