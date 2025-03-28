@@ -1,36 +1,38 @@
 import prisma from "@/lib/prisma";
-import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { jwtDecode } from "jwt-decode";
 
-export async function GET(request) {
+export async function GET(req) {
   try {
-    const token = await getToken({ req: request });
-    
-    if (!token?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwtDecode(token);
+    const userId = decoded.userId;
+
+    if (!userId) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const collaborators = await prisma.collaborator.findMany({
-      where: { userId: token.id },
-      include: { 
+      where: { userId: userId },
+      include: {
         user: {
           select: {
             id: true,
             name: true,
             email: true,
-          }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
+          },
+        },
+      }
     });
 
-    return NextResponse.json(collaborators);
+    return Response.json(collaborators, { status: 201 });
   } catch (error) {
-    console.error("Error fetching collaborators:", error);
-    return NextResponse.json(
+    console.error("collaborators fetch error:", error);
+    return Response.json(
       { error: "Failed to fetch collaborators" },
       { status: 500 }
     );

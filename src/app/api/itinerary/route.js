@@ -1,6 +1,6 @@
-import { authenticate } from "@/lib/middleware/auth";
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { jwtDecode } from "jwt-decode";
 import prisma from "@/lib/prisma";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -9,19 +9,24 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 export async function POST(req) {
   console.log("Create itinerary route hit!");
 
-  // Authenticate user
-  const authResult = authenticate(req);
-  if (authResult.error) {
-    return NextResponse.json(
-      { error: authResult.error },
-      { status: authResult.status }
-    );
-  }
-
-  const userId = authResult.user?.userId; // Extract userId from JWT payload
-  console.log("Authenticated user ID:", userId);
-
+  // Extract and validate authentication token
   try {
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwtDecode(token);
+    const userId = decoded.userId;
+
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    console.log("Authenticated user ID:", userId);
+
+    // Parse request body
     const body = await req.json();
     console.log("Request body:", body);
 
@@ -57,9 +62,9 @@ export async function POST(req) {
       );
     }
 
-    // Validate visibility against enum values
+    // Validate visibility
     const allowedVisibilityValues = ["PUBLIC", "PRIVATE"];
-    const normalizedVisibility = visibility.toUpperCase(); // Convert to uppercase
+    const normalizedVisibility = visibility.toUpperCase();
     if (!allowedVisibilityValues.includes(normalizedVisibility)) {
       return NextResponse.json(
         { error: "Invalid visibility value. Allowed values: PUBLIC, PRIVATE" },
@@ -72,12 +77,15 @@ export async function POST(req) {
     const endDateObj = new Date(endDate);
     if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
       return NextResponse.json(
-        { error: "Invalid date format. Please provide valid start and end dates." },
+        {
+          error:
+            "Invalid date format. Please provide valid start and end dates.",
+        },
         { status: 400 }
       );
     }
 
-    // Generate AI-based itinerary using Gemini API
+    // Generate AI-based itinerary
     const prompt = `
       Generate a ${duration}-day travel itinerary for ${destination}.
       Trip Type: ${tripType}. Budget: ${budget}.
@@ -126,18 +134,16 @@ export async function POST(req) {
       );
     }
 
-    // Clean up the response by removing any markdown or extra text
+    // Clean and parse AI response
     const cleanJson = itineraryData
-      .replace(/```json\n?|\n?```/g, "") // Remove markdown code blocks
-      .replace(/^[^{]*({.*})[^}]*$/, "$1") // Extract only the JSON object
+      .replace(/```json\n?|\n?```/g, "")
+      .replace(/^[^{]*({.*})[^}]*$/, "$1")
       .trim();
 
-    // Parse AI response (handle potential errors)
     let parsedData;
     try {
       parsedData = JSON.parse(cleanJson);
 
-      // Validate required fields
       if (
         !parsedData.history ||
         !parsedData.dailyItinerary ||
@@ -146,14 +152,13 @@ export async function POST(req) {
         throw new Error("Missing required fields in AI response");
       }
 
-      // Ensure the data is in the correct format for Prisma JSON field
       const formattedData = {
         history: parsedData.history,
         dailyItinerary: parsedData.dailyItinerary,
         expenses: parsedData.expenses,
       };
 
-      // Store the itinerary in the database
+      // Store itinerary in database
       let itinerary;
       try {
         itinerary = await prisma.itinerary.create({
@@ -181,10 +186,10 @@ export async function POST(req) {
         );
       }
 
-      // Return the created itinerary, including its ID
+      // Return the created itinerary
       return NextResponse.json(
         {
-          id: itinerary.id, // Include the itinerary ID in the response
+          id: itinerary.id,
           title: itinerary.title,
           destination: itinerary.destination,
           duration: itinerary.duration,

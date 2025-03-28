@@ -2,59 +2,91 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
+import { jwtDecode } from "jwt-decode";
+import { useRouter } from "next/navigation";
+import Avatar from "boring-avatars";
 
 export default function ProfilePage() {
-  const [userData, setUserData] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    collaborators: [
-      { id: 1, name: "Jane Doe", email: "jane.doe@example.com" },
-      { id: 2, name: "Alice Smith", email: "alice.smith@example.com" },
-      { id: 3, name: "Bob Johnson", email: "bob.johnson@example.com" },
-    ],
-  });
-
-  const [privateItineraries, setPrivateItineraries] = useState([
-    {
-      id: 1,
-      title: "Trip to Paris",
-      destination: "Paris",
-      duration: 7,
-      budget: "Medium",
-    },
-    {
-      id: 2,
-      title: "Weekend in the Mountains",
-      destination: "Swiss Alps",
-      duration: 3,
-      budget: "High",
-    },
-  ]);
-
-  const [publicItineraries, setPublicItineraries] = useState([
-    {
-      id: 3,
-      title: "Beach Vacation",
-      destination: "Maldives",
-      duration: 10,
-      budget: "Luxury",
-      createdBy: "Alice Smith",
-    },
-    {
-      id: 4,
-      title: "City Tour",
-      destination: "New York",
-      duration: 5,
-      budget: "Mid-range",
-      createdBy: "Jane Doe",
-    },
-  ]);
-
-  const [loading, setLoading] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [privateItineraries, setPrivateItineraries] = useState([]);
+  const [publicItineraries, setPublicItineraries] = useState([]);
+  const [savedItineraries, setSavedItineraries] = useState([]);
+  const [collaborators, setCollaborators] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      try {
+        // Get token from localStorage
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          router.push("/signin");
+          return;
+        }
+
+        // Decode token to get user info
+        const decoded = jwtDecode(token);
+
+        // Fetch all data in parallel using new endpoints
+        const [userRes, privateRes, savedRes, collaboratorsRes, publicRes] =
+          await Promise.all([
+            fetch("/api/profile/user", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch("/api/profile/private", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch("/api/profile/saved", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch("/api/profile/collaborators", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+            fetch("/api/itinerary/public", {
+              headers: { Authorization: `Bearer ${token}` },
+            }),
+          ]);
+
+        // Check all responses
+        if (!userRes.ok) throw new Error("Failed to fetch user data");
+        if (!privateRes.ok)
+          throw new Error("Failed to fetch private itineraries");
+        if (!savedRes.ok) throw new Error("Failed to fetch saved itineraries");
+        if (!collaboratorsRes.ok)
+          throw new Error("Failed to fetch collaborators");
+        if (!publicRes.ok)
+          throw new Error("Failed to fetch public itineraries");
+
+        // Parse responses
+        const userData = await userRes.json();
+        const privateData = await privateRes.json();
+        const savedData = await savedRes.json();
+        const collaboratorsData = await collaboratorsRes.json();
+        const publicData = await publicRes.json();
+
+        // Set state
+        setUserData({
+          name: userData.name || decoded.name || "User",
+          email: userData.email || decoded.email,
+          userId: decoded.userId,
+        });
+        setPrivateItineraries(privateData);
+        setSavedItineraries(savedData);
+        setCollaborators(collaboratorsData);
+        setPublicItineraries(publicData);
+      } catch (err) {
+        console.error("Error fetching profile data:", err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [router]);
 
   if (loading) {
     return (
@@ -72,18 +104,32 @@ export default function ProfilePage() {
     );
   }
 
+  if (!userData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <p className="text-lg text-gray-700">No user data found.</p>
+      </div>
+    );
+  }
+
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 p-6 mt-10">
         {/* Profile Header */}
-        <div className="text-center mb-8">
-          <Avatar className="w-24 h-24 mx-auto mb-4">
-            <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>JD</AvatarFallback>
-          </Avatar>
-          <h1 className="text-3xl font-bold text-gray-800">{userData.name}</h1>
-          <p className="text-gray-600">{userData.email}</p>
+        <div className="text-center mb-8 flex gap-3 p-2 justify-center bg-blue-600 text-white">
+          <Avatar
+            size={36}
+            name={userData.user?.name || "Anonymous"}
+            variant="beam" // or marble, pixel, sunset, ring, bauhaus
+            colors={["#FFAD08", "#EDD75A", "#73B06F", "#0C8F8F", "#405059"]}
+            square={false} // makes it circular
+            className="rounded-full mt-3" // ensures circular shape
+          />
+          <div className="flex flex-col">
+          <h1 className="text-3xl font-bold text-gray-50">{userData.name}</h1>
+          <p className="text-gray-100 ">{userData.email}</p>
+          </div>
         </div>
 
         {/* Collaborators Section */}
@@ -94,32 +140,29 @@ export default function ProfilePage() {
           className="mb-8"
         >
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            👥 Collaborators/ Friends
+            👥 Collaborators/Friends
           </h2>
-          <div className="flex flex-wrap gap-3">
-            {userData.collaborators.map((collaborator) => (
-              <div
-                key={collaborator.id}
-                className="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow"
-              >
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={`https://github.com/${collaborator.name.toLowerCase().replace(/\s+/g, '-')}.png`} />
-                  <AvatarFallback>
-                    {collaborator.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium text-gray-800">
-                    {collaborator.name}
-                  </p>
-                  <p className="text-xs text-gray-500">{collaborator.email}</p>
+          {collaborators.length > 0 ? (
+            <div className="flex flex-wrap gap-3">
+              {collaborators.map((collaborator) => (
+                <div
+                  key={collaborator.id}
+                  className="flex items-center space-x-3 bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">
+                      {collaborator.name}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {collaborator.email}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">No collaborators yet.</p>
+          )}
         </motion.div>
 
         {/* Private Itineraries Section */}
@@ -132,70 +175,73 @@ export default function ProfilePage() {
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             🔒 Private Itineraries
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {privateItineraries.map((itinerary) => (
-              <Card
-                key={itinerary.id}
-                className="hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold">
-                    {itinerary.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">
-                    🌍 {itinerary.destination}
-                  </p>
-                  <p className="text-gray-600">
-                    📅 {itinerary.duration} days
-                  </p>
-                  <p className="text-gray-600">
-                    💸 {itinerary.budget}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {privateItineraries.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {privateItineraries.map((itinerary) => (
+                <Card
+                  key={itinerary.id}
+                  className="hover:shadow-lg transition-shadow"
+                >
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">
+                      {itinerary.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600">🌍 {itinerary.destination}</p>
+                    <p className="text-gray-600">
+                      📅 {itinerary.duration} days
+                    </p>
+                    <p className="text-gray-600">💸 {itinerary.budget}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">No private itineraries yet.</p>
+          )}
         </motion.div>
 
-        {/* Public Itineraries Saved Section */}
+        {/* Saved Public Itineraries Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
+          className="mb-8"
         >
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            🌍 Public Itineraries Saved
+            💾 Saved Public Itineraries
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {publicItineraries.map((itinerary) => (
-              <Card
-                key={itinerary.id}
-                className="hover:shadow-lg transition-shadow"
-              >
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold">
-                    {itinerary.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">
-                    🌍 {itinerary.destination}
-                  </p>
-                  <p className="text-gray-600">
-                    📅 {itinerary.duration} days
-                  </p>
-                  <p className="text-gray-600">
-                    💸 {itinerary.budget}
-                  </p>
-                  <p className="text-gray-600">
-                    👤 Created by: {itinerary.createdBy}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          {savedItineraries.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {savedItineraries.map((itinerary) => (
+                <Card
+                  key={itinerary.id}
+                  className="hover:shadow-lg transition-shadow"
+                >
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">
+                      {itinerary.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600">🌍 {itinerary.destination}</p>
+                    <p className="text-gray-600">
+                      📅 {itinerary.duration} days
+                    </p>
+                    <p className="text-gray-600">💸 {itinerary.budget}</p>
+                    {itinerary.user && (
+                      <p className="text-gray-600">
+                        👤 Created by: {itinerary.user.name}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">No saved itineraries yet.</p>
+          )}
         </motion.div>
       </div>
     </>

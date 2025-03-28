@@ -1,20 +1,23 @@
 import prisma from "@/lib/prisma";
-import { NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { jwtDecode } from "jwt-decode";
 
-export async function GET(request) {
+export async function GET(req) {
   try {
-    const token = await getToken({ req: request });
-    
-    if (!token?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const decoded = jwtDecode(token);
+    const userId = decoded.userId;
+
+    if (!userId) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: token.id },
+      where: { id: userId },
       select: {
         id: true,
         name: true,
@@ -40,10 +43,10 @@ export async function GET(request) {
       );
     }
 
-    return NextResponse.json(user);
+    return Response.json(user, { status: 201 });
   } catch (error) {
     console.error("Error fetching user data:", error);
-    return NextResponse.json(
+    return Response.json(
       { error: "Failed to fetch user data" },
       { status: 500 }
     );
