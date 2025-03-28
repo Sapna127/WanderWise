@@ -3,9 +3,9 @@ import { jwtDecode } from "jwt-decode";
 
 export async function POST(req) {
   try {
-    // Get token from Authorization header
+    // Authentication
     const authHeader = req.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -17,33 +17,40 @@ export async function POST(req) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Request validation
     const { itineraryId, rating, comment } = await req.json();
-
     if (!itineraryId || !rating || !comment) {
-      return Response.json({ error: "Missing required fields" }, { status: 400 });
+      return Response.json(
+        { error: "Missing itineraryId, rating, or comment" },
+        { status: 400 }
+      );
     }
 
+    // Create review
     const review = await prisma.review.create({
-      data: { 
-        userId, 
-        itineraryId, 
-        rating: parseInt(rating), 
-        comment 
+      data: {
+        userId,
+        itineraryId,
+        rating: parseInt(rating),
+        comment,
       },
       include: {
         user: {
           select: {
             id: true,
             name: true,
-            email: true
-          }
-        }
-      }
+            email: true,
+          },
+        },
+      },
     });
 
     return Response.json(review, { status: 201 });
   } catch (error) {
     console.error("Review creation error:", error);
-    return Response.json({ error: "Failed to add review" }, { status: 500 });
+    return Response.json(
+      { error: error.message || "Failed to create review" },
+      { status: 500 }
+    );
   }
 }

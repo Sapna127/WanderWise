@@ -101,7 +101,7 @@ export default function ItineraryPage() {
         return;
       }
 
-      const response = await fetch("/api/itinerary/review", {
+      const response = await fetch("/api/itinerary/reviews", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
